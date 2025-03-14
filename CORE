@@ -1,1 +1,118 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form, #recipeList {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form input, form textarea, form button, #searchInput {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #recipeList .recipe {
+            padding: 20px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Recipe Book</h1>
+    <form id="recipeForm">
+        <input type="text" id="recipeName" placeholder="Recipe Name" required>
+        <textarea id="ingredients" placeholder="Ingredients" required></textarea>
+        <textarea id="steps" placeholder="Preparation Steps" required></textarea>
+        <input type="file" id="recipeImage" accept="image/*" required>
+        <button type="submit">Add Recipe</button>
+    </form>
+    <div id="recipeList"></div>
+    <input type="text" id="searchInput" placeholder="Search recipes...">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const recipeForm = document.getElementById('recipeForm');
+            const recipeList = document.getElementById('recipeList');
+            const searchInput = document.getElementById('searchInput');
+
+            // Load recipes from local storage
+            const recipes = JSON.parse(localStorage.getItem('recipes')) || [];
+            displayRecipes(recipes);
+
+            recipeForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                
+                const recipeName = document.getElementById('recipeName').value;
+                const ingredients = document.getElementById('ingredients').value;
+                const steps = document.getElementById('steps').value;
+                const recipeImage = document.getElementById('recipeImage').files[0];
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const recipe = {
+                        name: recipeName,
+                        ingredients: ingredients,
+                        steps: steps,
+                        image: e.target.result
+                    };
+                    recipes.push(recipe);
+                    localStorage.setItem('recipes', JSON.stringify(recipes));
+                    displayRecipes(recipes);
+                    recipeForm.reset();
+                };
+                reader.readAsDataURL(recipeImage);
+            });
+
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.toLowerCase();
+                const filteredRecipes = recipes.filter(recipe => recipe.name.toLowerCase().includes(query) || recipe.ingredients.toLowerCase().includes(query));
+                displayRecipes(filteredRecipes);
+            });
+
+            function displayRecipes(recipes) {
+                recipeList.innerHTML = '';
+                recipes.forEach(recipe => {
+                    const recipeElement = document.createElement('div');
+                    recipeElement.className = 'recipe';
+                    recipeElement.innerHTML = `
+                        <h2>${recipe.name}</h2>
+                        <p><strong>Ingredients:</strong></p>
+                        <p>${recipe.ingredients}</p>
+                        <p><strong>Preparation Steps:</strong></p>
+                        <p>${recipe.steps}</p>
+                        <img src="${recipe.image}" alt="${recipe.name}" style="width: 100%; border-radius: 5px;">
+                    `;
+                    recipeList.appendChild(recipeElement);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
